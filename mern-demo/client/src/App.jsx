@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://congenial-guacamole-wv9jqrp6q6wjfwv5-5000.app.github.dev/api/students";
+const API_URL = "http://localhost:5000/api/students";
 
 function App() {
   const [students, setStudents] = useState([]);
   const [studentId, setStudentId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const fetchStudents = () => {
     axios
@@ -20,18 +21,53 @@ function App() {
     fetchStudents();
   }, []);
 
+  const resetForm = () => {
+    setStudentId("");
+    setName("");
+    setEmail("");
+    setEditingId(null);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (editingId) {
+      // Đang ở chế độ SỬA -> gọi API PUT
+      axios
+        .put(`${API_URL}/${editingId}`, { studentId, name, email })
+        .then(() => {
+          resetForm();
+          fetchStudents();
+        })
+        .catch((err) => console.error("Lỗi cập nhật sinh viên:", err));
+    } else {
+      // Chế độ THÊM MỚI -> gọi API POST
+      axios
+        .post(API_URL, { studentId, name, email })
+        .then(() => {
+          resetForm();
+          fetchStudents();
+        })
+        .catch((err) => console.error("Lỗi thêm sinh viên:", err));
+    }
+  };
+
+  const handleEditClick = (sv) => {
+    setEditingId(sv._id);
+    setStudentId(sv.studentId);
+    setName(sv.name);
+    setEmail(sv.email);
+  };
+
+  const handleDelete = (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa sinh viên này?")) return;
+
     axios
-      .post(API_URL, { studentId, name, email })
+      .delete(`${API_URL}/${id}`)
       .then(() => {
-        setStudentId("");
-        setName("");
-        setEmail("");
         fetchStudents();
       })
-      .catch((err) => console.error("Lỗi thêm sinh viên:", err));
+      .catch((err) => console.error("Lỗi xóa sinh viên:", err));
   };
 
   return (
@@ -60,7 +96,14 @@ function App() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <button type="submit">Thêm sinh viên</button>
+        <button type="submit">
+          {editingId ? "Cập nhật sinh viên" : "Thêm sinh viên"}
+        </button>
+        {editingId && (
+          <button type="button" onClick={resetForm} style={{ marginLeft: "8px" }}>
+            Hủy
+          </button>
+        )}
       </form>
 
       <table border="1" cellPadding="8">
@@ -69,6 +112,7 @@ function App() {
             <th>MSSV</th>
             <th>Họ tên</th>
             <th>Email</th>
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -77,6 +121,12 @@ function App() {
               <td>{sv.studentId}</td>
               <td>{sv.name}</td>
               <td>{sv.email}</td>
+              <td>
+                <button onClick={() => handleEditClick(sv)}>Sửa</button>
+                <button onClick={() => handleDelete(sv._id)} style={{ marginLeft: "6px" }}>
+                  Xóa
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
