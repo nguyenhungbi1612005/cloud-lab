@@ -72,7 +72,7 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Quản lý sinh viên</h1>
+      <h1>Quản lý sinh viên - v2.0</h1>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
         <input
