@@ -1,5 +1,5 @@
 # Cloud Computing Laboratory
-Student Name:
-Student ID:
-Class:
+Student Name:Nguyễn Hùng Bi
+Student ID:238284
+Class:DH23TIN10
 Updated by Bii
