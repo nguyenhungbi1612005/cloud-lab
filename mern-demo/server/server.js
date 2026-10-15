@@ -7,8 +7,47 @@ const Student = require("./models/Student");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// ---------------------------------------------------------------
+// Cấu hình CORS cho Production
+// Chỉ cho phép đúng Domain Frontend (CLIENT_URL) và localhost khi chạy thử.
+// Nguồn (Origin) lạ sẽ không nhận được header Access-Control-Allow-Origin
+// nên trình duyệt sẽ chặn request.
+// ---------------------------------------------------------------
+const allowedOrigins = [
+  // Bỏ dấu "/" ở cuối (nếu có) để so khớp chính xác với header Origin
+  process.env.CLIENT_URL && process.env.CLIENT_URL.replace(/\/$/, ""),
+  "http://localhost:3000",
+  "http://localhost:5173",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Request không có header Origin (curl, health check của Render...) vẫn được xử lý
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      // Origin không nằm trong danh sách: không trả header CORS
+      return callback(null, false);
+    },
+  })
+);
 app.use(express.json());
+
+// ---------------------------------------------------------------
+// Ghi log mỗi request HTTP để quan sát trên tab Logs của Render
+// Chỉ ghi phương thức, đường dẫn, mã trạng thái và thời gian xử lý
+// (không ghi nội dung body để tránh lộ dữ liệu).
+// ---------------------------------------------------------------
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    console.log(
+      `${req.method} ${req.originalUrl} ${res.statusCode} - ${Date.now() - start}ms`
+    );
+  });
+  next();
+});
 
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -36,6 +75,7 @@ app.post("/api/students", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 app.put("/api/students/:id", async (req, res) => {
   try {
     const updatedStudent = await Student.findByIdAndUpdate(
@@ -53,6 +93,7 @@ app.put("/api/students/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 app.delete("/api/students/:id", async (req, res) => {
   try {
     const deletedStudent = await Student.findByIdAndDelete(req.params.id);
