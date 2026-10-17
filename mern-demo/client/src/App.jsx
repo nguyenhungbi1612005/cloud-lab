@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/students`;
+const API_URL = `${import.meta.env.VITE_API_URL || ""}/api/students`;
 
 function App() {
   const [students, setStudents] = useState([]);
@@ -72,6 +72,19 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
+      {/* Header hiển thị phiên bản ứng dụng */}
+      <header
+        style={{
+          background: "#1e293b",
+          color: "#ffffff",
+          padding: "10px 16px",
+          marginBottom: "16px",
+          borderRadius: "6px",
+        }}
+      >
+        Phiên bản 2.0 - Production Cloud PaaS (Auto-Deployed)
+      </header>
+
       <h1>Quản lý sinh viên - v2.0</h1>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
@@ -131,6 +144,18 @@ function App() {
           ))}
         </tbody>
       </table>
+
+      {/* Footer hiển thị phiên bản ứng dụng */}
+      <footer
+        style={{
+          marginTop: "24px",
+          paddingTop: "10px",
+          borderTop: "1px solid #cccccc",
+          fontSize: "14px",
+        }}
+      >
+        Phiên bản 2.0 - Production Cloud PaaS (Auto-Deployed)
+      </footer>
     </div>
   );
 }

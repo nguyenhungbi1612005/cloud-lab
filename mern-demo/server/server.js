@@ -40,6 +40,8 @@ app.use(express.json());
 // (không ghi nội dung body để tránh lộ dữ liệu).
 // ---------------------------------------------------------------
 app.use((req, res, next) => {
+  // Render gọi /health liên tục, bỏ qua để log không bị tràn
+  if (req.originalUrl === "/health") return next();
   const start = Date.now();
   res.on("finish", () => {
     console.log(
@@ -57,6 +59,21 @@ mongoose
 app.get("/api/hello", (req, res) => {
   res.json({ message: "Backend đang hoạt động!" });
 });
+
+// ---------------------------------------------------------------
+// Health Check Endpoint cho Cloud PaaS Monitoring
+// /health      : Render dùng làm Health Check Path (Rolling Update)
+// /api/health  : truy cập được qua Domain Frontend (Reverse Proxy /api/*)
+// ---------------------------------------------------------------
+const healthHandler = (req, res) => {
+  res.status(200).json({
+    status: "UP",
+    timestamp: new Date(),
+    uptime: process.uptime(),
+  });
+};
+app.get("/health", healthHandler);
+app.get("/api/health", healthHandler);
 
 app.get("/api/students", async (req, res) => {
   try {
@@ -109,5 +126,5 @@ app.delete("/api/students/:id", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server đang chạy tại port ${PORT}`);
+  console.log(`Server đang chạy tại port ${PORT} - Auto-Deploy qua Docker Hub Webhook thành công!`);
 });
